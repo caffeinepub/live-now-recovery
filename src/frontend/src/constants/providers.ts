@@ -1,0 +1,81 @@
+import type { Provider } from "@/backend";
+
+export interface ProviderWithCoords extends Provider {
+  lat: number;
+  lng: number;
+}
+
+export const SAMPLE_PROVIDERS: ProviderWithCoords[] = [
+  {
+    id: "brightside-1",
+    name: "Brightside Recovery – Cleveland",
+    address: "1375 Euclid Ave, Cleveland, OH 44115",
+    zip: "44115",
+    phone: "(216) 555-0101",
+    isLive: true,
+    isVerified: true,
+    lastVerified: BigInt(Date.now()) * 1000000n,
+    lat: 41.4993,
+    lng: -81.6944,
+  },
+  {
+    id: "brightside-2",
+    name: "Brightside Recovery – Lakewood",
+    address: "12200 Madison Ave, Lakewood, OH 44107",
+    zip: "44107",
+    phone: "(216) 555-0202",
+    isLive: true,
+    isVerified: true,
+    lastVerified: BigInt(Date.now()) * 1000000n,
+    lat: 41.4823,
+    lng: -81.7998,
+  },
+  {
+    id: "brightside-3",
+    name: "Brightside Recovery – Parma",
+    address: "5500 Ridge Rd, Parma, OH 44129",
+    zip: "44129",
+    phone: "(216) 555-0303",
+    isLive: false,
+    isVerified: true,
+    lastVerified: BigInt(Date.now() - 86400000) * 1000000n,
+    lat: 41.3845,
+    lng: -81.729,
+  },
+  {
+    id: "brightside-4",
+    name: "Brightside Recovery – Euclid",
+    address: "25400 Euclid Ave, Euclid, OH 44117",
+    zip: "44117",
+    phone: "(216) 555-0404",
+    isLive: true,
+    isVerified: true,
+    lastVerified: BigInt(Date.now()) * 1000000n,
+    lat: 41.5931,
+    lng: -81.5268,
+  },
+  {
+    id: "brightside-5",
+    name: "Brightside Recovery – Mentor",
+    address: "8000 Mentor Ave, Mentor, OH 44060",
+    zip: "44060",
+    phone: "(440) 555-0505",
+    isLive: false,
+    isVerified: false,
+    lastVerified: BigInt(Date.now() - 172800000) * 1000000n,
+    lat: 41.6661,
+    lng: -81.3395,
+  },
+  {
+    id: "brightside-6",
+    name: "Lake County MAT Center",
+    address: "2 Riverside Dr, Painesville, OH 44077",
+    zip: "44077",
+    phone: "(440) 555-0606",
+    isLive: true,
+    isVerified: true,
+    lastVerified: BigInt(Date.now()) * 1000000n,
+    lat: 41.7245,
+    lng: -81.2459,
+  },
+];
