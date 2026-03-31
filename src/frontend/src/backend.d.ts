@@ -36,8 +36,8 @@ export enum UserRole {
 export type HandoffStatus = { Pending: null } | { Completed: null };
 export interface Handoff {
     id: string;
-    volHash: string;    // one-way hash of volunteer principal — NO PHI
-    zip: string;        // anonymous ZIP code only
+    volHash: string;
+    zip: string;
     timestamp: bigint;
     status: HandoffStatus;
 }
@@ -54,6 +54,52 @@ export interface ContactMessage {
     organization: string;
     message: string;
     timestamp: bigint;
+}
+
+// Community Helper (NO-PHI: id is hash of principal)
+export type HelperStatus = { Active: null } | { Offline: null };
+export interface Helper {
+    id: string;
+    status: HelperStatus;
+    assignedZip: string;
+    lastCheckIn: bigint;
+}
+
+// Twilio SMS Config
+export interface AuditLogEntry {
+    timestamp: bigint;
+    zip: string;
+    outcome: string;
+}
+
+// RBAC
+export type AppUserRole = { User: null } | { Helper: null } | { Clinic: null } | { Admin: null };
+export interface RoleProfile {
+    alias: string;
+    zip: string;
+    role: AppUserRole;
+    registeredAt: bigint;
+}
+export interface RegistryEntry {
+    hashedId: string;
+    role: string;
+}
+
+// Clinic status
+export type NaloxoneStock = { Available: null } | { LimitedStock: null } | { OutOfStock: null };
+export interface ClinicStatus {
+    naloxone: NaloxoneStock;
+    acceptingPatients: boolean;
+    updatedAt: bigint;
+}
+
+
+export interface ImpactData {
+    zip: string;
+    savingsPot: number;
+    livesProjected: number;
+    helperCount: bigint;
+    searchIntents: bigint;
 }
 
 export interface backendInterface {
@@ -81,4 +127,27 @@ export interface backendInterface {
     // Contact Messages
     submitContactMessage(name: string, organization: string, message: string): Promise<void>;
     getContactMessages(): Promise<Array<ContactMessage>>;
+    // Community Helpers
+    claimArea(zip: string): Promise<void>;
+    checkOutArea(): Promise<void>;
+    getLiveHelpers(zip: string): Promise<bigint>;
+    getHelperStatus(): Promise<Helper | null>;
+    getHighRiskAreas(): Promise<Array<string>>;
+    getActiveHelperZips(): Promise<Array<string>>;
+    // Twilio SMS
+    updateTwilioConfig(sid: string, authToken: string, fromNumber: string): Promise<void>;
+    getTwilioConfigured(): Promise<boolean>;
+    sendVerificationSMS(targetPhone: string, callerZip: string): Promise<string>;
+    getSmsAuditLog(): Promise<Array<AuditLogEntry>>;
+    // RBAC Registry
+    registerRole(role: AppUserRole, alias: string, zip: string): Promise<void>;
+    getMyRole(): Promise<AppUserRole | null>;
+    getMyRoleProfile(): Promise<RoleProfile | null>;
+    getAllRegisteredUsers(): Promise<Array<RegistryEntry>>;
+    // Clinic
+    updateClinicStatus(naloxone: NaloxoneStock, acceptingPatients: boolean): Promise<void>;
+    getClinicStatus(providerId: string): Promise<ClinicStatus | null>;
+    // Impact Shadow
+    getImpactData(zip: string): Promise<ImpactData>;
+    getAllZipImpactData(): Promise<Array<ImpactData>>;
 }

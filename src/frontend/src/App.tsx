@@ -1,14 +1,18 @@
 import EmergencyBanner from "@/components/EmergencyBanner";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import SentinelChat from "@/components/SentinelChat";
 import { Toaster } from "@/components/ui/sonner";
 import AboutPage from "@/pages/AboutPage";
 import AdminPage from "@/pages/AdminPage";
 import ContactPage from "@/pages/ContactPage";
 import DashboardPage from "@/pages/DashboardPage";
+import HelperPage from "@/pages/HelperPage";
 import HomePage from "@/pages/HomePage";
+import LocationPage, { LocationPageDirect } from "@/pages/LocationPage";
 import MissionPage from "@/pages/MissionPage";
 import ProviderPage from "@/pages/ProviderPage";
+import RegisterPage from "@/pages/RegisterPage";
 import VerifyPage from "@/pages/VerifyPage";
 import {
   Outlet,
@@ -28,6 +32,7 @@ const rootRoute = createRootRoute({
       </main>
       <Footer />
       <Toaster richColors position="top-right" />
+      <SentinelChat />
     </div>
   ),
 });
@@ -48,6 +53,12 @@ const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/dashboard",
   component: DashboardPage,
+});
+
+const helperRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/helper",
+  component: HelperPage,
 });
 
 const adminRoute = createRoute({
@@ -80,15 +91,66 @@ const contactRoute = createRoute({
   component: ContactPage,
 });
 
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/register",
+  component: RegisterPage,
+});
+
+const locationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/location/$town",
+  component: LocationPage,
+});
+
+// Direct SEO town routes
+const clevelandRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/cleveland",
+  component: () => <LocationPageDirect town="cleveland" />,
+});
+
+const lakewoodRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/lakewood",
+  component: () => <LocationPageDirect town="lakewood" />,
+});
+
+const parmaRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/parma",
+  component: () => <LocationPageDirect town="parma" />,
+});
+
+const lorainRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/lorain",
+  component: () => <LocationPageDirect town="lorain" />,
+});
+
+const akronRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/akron",
+  component: () => <LocationPageDirect town="akron" />,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   providerRoute,
   dashboardRoute,
+  helperRoute,
   adminRoute,
   verifyRoute,
   missionRoute,
   aboutRoute,
   contactRoute,
+  registerRoute,
+  locationRoute,
+  clevelandRoute,
+  lakewoodRoute,
+  parmaRoute,
+  lorainRoute,
+  akronRoute,
 ]);
 
 const router = createRouter({ routeTree });

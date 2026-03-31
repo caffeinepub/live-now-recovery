@@ -4,7 +4,13 @@ import ProviderMap from "@/components/ProviderMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ProviderWithCoords } from "@/constants/providers";
-import { useProviders, useRecordSearchIntent } from "@/hooks/useQueries";
+import {
+  useActiveHelperZips,
+  useAllZipImpactData,
+  useProviders,
+  useRecordSearchIntent,
+  useSystemRiskLevel,
+} from "@/hooks/useQueries";
 import { AlertCircle, Loader2, MapPin, Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useState } from "react";
@@ -20,6 +26,9 @@ export default function HomePage() {
   } | null>(null);
 
   const { data: providers = [], isLoading } = useProviders();
+  const { data: activeHelperZips = [] } = useActiveHelperZips();
+  const { data: impactData = [] } = useAllZipImpactData();
+  const { data: systemRiskLevel = "GREEN" } = useSystemRiskLevel();
   const recordSearch = useRecordSearchIntent();
 
   function filterProviders(all: ProviderWithCoords[]): ProviderWithCoords[] {
@@ -261,6 +270,9 @@ export default function HomePage() {
                 </div>
               ) : (
                 <ProviderMap
+                  activeHelperZips={activeHelperZips}
+                  impactData={impactData}
+                  systemRiskLevel={systemRiskLevel}
                   providers={
                     displayedProviders.length > 0
                       ? displayedProviders

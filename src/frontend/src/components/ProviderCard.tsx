@@ -1,3 +1,4 @@
+import CubanBridgeCard from "@/components/CubanBridgeCard";
 import { Badge } from "@/components/ui/badge";
 import type { ProviderWithCoords } from "@/constants/providers";
 import { isProviderStale } from "@/utils/emergency";
@@ -29,23 +30,23 @@ export default function ProviderCard({ provider, index }: ProviderCardProps) {
             {isActive ? (
               <span className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-live animate-pulse-slow flex-shrink-0" />
-                <Badge className="bg-live/10 text-green-700 border-live/30 text-xs font-semibold">
+                <Badge className="bg-live/10 text-green-400 border-live/30 text-xs font-semibold">
                   LIVE NOW
                 </Badge>
               </span>
             ) : isStale && provider.isLive ? (
               <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-yellow-400 flex-shrink-0" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-data flex-shrink-0" />
                 <Badge
                   variant="outline"
-                  className="text-yellow-700 border-yellow-400 text-xs"
+                  className="text-amber-data border-amber-data/40 text-xs"
                 >
                   Status Unverified
                 </Badge>
               </span>
             ) : (
               <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-gray-300 flex-shrink-0" />
+                <span className="h-2.5 w-2.5 rounded-full bg-gray-500 flex-shrink-0" />
                 <Badge
                   variant="outline"
                   className="text-muted-foreground text-xs"
@@ -56,7 +57,7 @@ export default function ProviderCard({ provider, index }: ProviderCardProps) {
             )}
 
             {provider.isVerified && (
-              <span className="flex items-center gap-1 text-teal text-xs font-medium">
+              <span className="flex items-center gap-1 text-trust-blue text-xs font-medium">
                 <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                 Verified
               </span>
@@ -80,12 +81,12 @@ export default function ProviderCard({ provider, index }: ProviderCardProps) {
           {/* Phone */}
           <div className="flex items-center gap-1.5 text-sm">
             <Phone
-              className="h-3.5 w-3.5 text-teal flex-shrink-0"
+              className="h-3.5 w-3.5 text-trust-blue flex-shrink-0"
               aria-hidden="true"
             />
             <a
               href={`tel:${provider.phone.replace(/\D/g, "")}`}
-              className="text-teal font-semibold hover:underline"
+              className="text-trust-blue font-semibold hover:underline"
               data-ocid={`provider.phone.${index + 1}`}
             >
               {provider.phone}
@@ -94,18 +95,21 @@ export default function ProviderCard({ provider, index }: ProviderCardProps) {
 
           {/* Stale warning */}
           {isStale && (
-            <div className="flex items-center gap-1.5 mt-2 text-yellow-700 text-xs">
+            <div className="flex items-center gap-1.5 mt-2 text-amber-data text-xs">
               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Not updated in 24+ hours</span>
+              <span>Not updated in 4+ hours</span>
             </div>
           )}
+
+          {/* Cuban Bridge Card — only for verified + live providers */}
+          {isActive && <CubanBridgeCard />}
         </div>
 
         {/* Arrow link */}
         <Link
           to="/provider/$id"
           params={{ id: provider.id }}
-          className="flex-shrink-0 flex items-center justify-center bg-teal hover:bg-teal-button text-white rounded-lg p-2.5 transition-colors min-h-[44px] min-w-[44px]"
+          className="flex-shrink-0 flex items-center justify-center bg-trust-blue hover:opacity-90 text-white rounded-lg p-2.5 transition-opacity min-h-[44px] min-w-[44px]"
           aria-label={`View ${provider.name} profile`}
           data-ocid={`provider.view.${index + 1}`}
         >

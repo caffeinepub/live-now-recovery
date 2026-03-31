@@ -12,23 +12,28 @@ import { Label } from "@/components/ui/label";
 import { useInternetIdentity } from "@/hooks/useInternetIdentity";
 import {
   useAddProvider,
+  useClinicStatus,
   useProviderDashboard,
   useToggleLiveStatus,
+  useUpdateClinicStatus,
 } from "@/hooks/useQueries";
+import { isClinicRole, useRole } from "@/hooks/useRole";
 import { isProviderStale } from "@/utils/emergency";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  Activity,
   AlertCircle,
   CheckCircle2,
   Clock,
   Loader2,
   LogIn,
   Plus,
+  Stethoscope,
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface RegistrationForm {
@@ -38,9 +43,169 @@ interface RegistrationForm {
   phone: string;
 }
 
+function ClinicSettingsPanel({ providerId }: { providerId: string }) {
+  const { data: currentStatus } = useClinicStatus(providerId);
+  const updateMutation = useUpdateClinicStatus();
+  const [naloxone, setNaloxone] = useState<
+    "Available" | "LimitedStock" | "OutOfStock"
+  >("Available");
+  const [accepting, setAccepting] = useState(true);
+
+  // Initialize from current status when loaded
+  useEffect(() => {
+    if (currentStatus) {
+      if ("Available" in currentStatus.naloxone) setNaloxone("Available");
+      else if ("LimitedStock" in currentStatus.naloxone)
+        setNaloxone("LimitedStock");
+      else setNaloxone("OutOfStock");
+      setAccepting(currentStatus.acceptingPatients);
+    }
+  }, [currentStatus]);
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      type NS =
+        | { Available: null }
+        | { LimitedStock: null }
+        | { OutOfStock: null };
+      const naloxoneArg = { [naloxone]: null } as unknown as NS;
+      await updateMutation.mutateAsync({
+        naloxone: naloxoneArg,
+        acceptingPatients: accepting,
+      });
+      toast.success("Clinic status updated successfully.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Update failed.");
+    }
+  }
+
+  const NALOXONE_OPTIONS = [
+    {
+      value: "Available",
+      label: "Available",
+      color: "bg-green-100 text-green-700 border-green-300",
+    },
+    {
+      value: "LimitedStock",
+      label: "Limited Stock",
+      color: "bg-amber-100 text-amber-700 border-amber-300",
+    },
+    {
+      value: "OutOfStock",
+      label: "Out of Stock",
+      color: "bg-red-100 text-red-700 border-red-300",
+    },
+  ] as const;
+
+  return (
+    <Card
+      className="border-teal/20 bg-teal/5 mb-6"
+      data-ocid="dashboard.clinic.panel"
+    >
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <Stethoscope className="h-5 w-5 text-teal" aria-hidden="true" />
+          <CardTitle className="text-base font-extrabold">
+            Clinic Settings
+          </CardTitle>
+        </div>
+        <CardDescription>
+          Update your naloxone availability and patient intake status in real
+          time.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleUpdate} className="space-y-5">
+          <div>
+            <p className="text-sm font-semibold mb-3">Naloxone Stock</p>
+            <div className="flex flex-wrap gap-2">
+              {NALOXONE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setNaloxone(opt.value)}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${
+                    naloxone === opt.value
+                      ? `${opt.color} ring-2 ring-offset-1 ring-teal`
+                      : "bg-background text-muted-foreground border-border hover:border-teal/40"
+                  }`}
+                  data-ocid={`dashboard.clinic.naloxone_${opt.value.toLowerCase()}.toggle`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={accepting}
+              onClick={() => setAccepting((v) => !v)}
+              className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full border-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal ${
+                accepting ? "border-teal bg-teal" : "border-border bg-muted"
+              }`}
+              data-ocid="dashboard.clinic.accepting.switch"
+            >
+              <span
+                className={`inline-block h-5 w-5 rounded-full bg-white shadow-md transform transition-transform mt-0.5 ${
+                  accepting ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+            <span className="text-sm font-medium">
+              {accepting
+                ? "Accepting New Patients"
+                : "Not Accepting New Patients"}
+            </span>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={updateMutation.isPending}
+            className="bg-teal hover:bg-teal-dark text-white font-bold border-0 h-11 px-6"
+            data-ocid="dashboard.clinic.update.button"
+          >
+            {updateMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <Activity className="h-4 w-4 mr-2" />
+                Update Status
+              </>
+            )}
+          </Button>
+        </form>
+
+        {currentStatus && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-xs text-muted-foreground">
+              Last updated:{" "}
+              {new Date(
+                Number(currentStatus.updatedAt / 1_000_000n),
+              ).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DashboardPage() {
   const { identity, login, isLoggingIn } = useInternetIdentity();
   const isAuthenticated = !!identity;
+  const { role } = useRole();
   const navigate = useNavigate();
 
   const { data: provider, isLoading } = useProviderDashboard();
@@ -317,6 +482,11 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
+        )}
+
+        {/* Clinic Settings — shown if user has Clinic role */}
+        {role && isClinicRole(role) && provider?.id && (
+          <ClinicSettingsPanel providerId={provider.id} />
         )}
 
         {/* Live toggle */}

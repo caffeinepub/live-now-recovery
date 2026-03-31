@@ -1,33 +1,35 @@
-# Live Now Recovery
+# Live Now Recovery — Impact Shadow Visualization
 
 ## Current State
-The app has: HomePage, ProviderPage, DashboardPage, AdminPage, VerifyPage. Header has Find Care, Dashboard, Admin nav links. Footer has resources and emergency CTA. Backend has provider management, Sentinel Agent, PoP handoff system.
+The app has a Leaflet map (`ProviderMap.tsx`) with provider pins and helper ZIP coverage circles. The backend tracks `searchVolume` per ZIP and has `getLiveHelpers(zip)`. No impact visualization or predictive pulse exists yet.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `/mission` page: Mission statement, Why We Built This problem/solution table, Hard Rules (No-PHI, 4-Hour Decay, Transparency Mandate, PoP as Primary Metric)
-- `/about` page: Who It Serves (5 audiences), How It Works flow, Where It Is Going roadmap (Near/Mid/Long-term)
-- `/contact` page: Form with name, organization, message fields stored in backend canister
-- `submitContactMessage(name, org, message)` backend function — stores anonymous contact submissions
-- `getContactMessages()` admin-only backend query — returns all submissions for admin review
-- Admin dashboard section to view contact messages
-- Header nav links for Mission, About, Contact (desktop + mobile)
+- Backend: `getImpactData(zip)` — returns `{ savingsPot: Float; livesProjected: Float; helperCount: Nat; searchIntents: Nat }`. savingsPot = searchIntents * 120. livesProjected = (seededPop/500) * 0.088.
+- Backend: `getAllZipImpactData()` — returns array of all ZIP impact records for map overlay.
+- Frontend: `ShadowLayer` component embedded in `ProviderMap.tsx` — seafoam green glow circles over NE Ohio ZIPs, radius = searchIntents * 5 (min 400m), CSS pulsing animation tied to risk level.
+- Frontend: `ShadowTooltip` popup on circle click — "Community Wealth Reclaimed", "Safety Coverage", "Active Peer Bridge" lines.
+- Frontend: "Show Impact" toggle button on the map.
+- Frontend: `useAllZipImpactData` and `useZipImpactData` hooks in `useQueries.ts`.
+- CSS: `.shadow-pulse-calm` (4s) and `.shadow-pulse-rush` (0.8s) animation classes.
+- Rush trigger: ZIP auto-flags as high-urgency when searchIntents > 20 (frontend-side threshold using fetched data).
 
 ### Modify
-- Header: add Mission, About, Contact nav links
-- AdminPage: add Contact Messages tab/section
-- Backend main.mo: add ContactMessage type and functions
+- `ProviderMap.tsx` — add ShadowLayer render and toggle state, accept `impactData` and `systemRiskLevel` props.
+- `HomePage.tsx` — pass `impactData` and `systemRiskLevel` to ProviderMap.
+- `backend.d.ts` — add `ImpactData` interface and new method signatures.
+- `useQueries.ts` — add impact data hooks.
 
 ### Remove
-- Nothing removed
+- Nothing removed.
 
 ## Implementation Plan
-1. Update backend (main.mo) with ContactMessage type, submitContactMessage, getContactMessages
-2. Regenerate backend.d.ts bindings
-3. Create MissionPage.tsx using README content
-4. Create AboutPage.tsx using README content
-5. Create ContactPage.tsx with form wired to submitContactMessage
-6. Update App.tsx with /mission, /about, /contact routes
-7. Update Header.tsx with new nav links
-8. Update AdminPage.tsx with contact messages section
+1. Add `getImpactData` and `getAllZipImpactData` to Motoko backend with seeded ZIP population map.
+2. Update `backend.d.ts` with `ImpactData` type and two new method signatures.
+3. Add `useAllZipImpactData` hook to `useQueries.ts` with 30s refetch.
+4. Add CSS pulse animations to `index.css`.
+5. Build `ShadowLayer` logic inside `ProviderMap.tsx` — render seafoam circles per ZIP, show tooltip on click.
+6. Add "Show Impact" toggle button on the map.
+7. Wire `systemRiskLevel` prop to control animation speed (calm vs rush).
+8. Update `HomePage.tsx` to pass impact data and risk level to map.

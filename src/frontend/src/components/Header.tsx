@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useInternetIdentity } from "@/hooks/useInternetIdentity";
 import { useIsAdmin } from "@/hooks/useQueries";
+import { isAdminRole, isHelperRole, roleLabel, useRole } from "@/hooks/useRole";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Heart,
@@ -13,9 +14,51 @@ import {
   Phone,
   ShieldCheck,
   Target,
+  Users,
   X,
 } from "lucide-react";
 import { useState } from "react";
+
+function RoleBadge({ className = "" }: { className?: string }) {
+  const { role } = useRole();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+
+  if (!isAuthenticated) return null;
+
+  if (role === null) {
+    return (
+      <Link
+        to="/register"
+        className={`text-xs font-bold px-2.5 py-1 rounded-full bg-amber-400 text-amber-900 hover:bg-amber-300 transition-colors whitespace-nowrap ${className}`}
+        data-ocid="header.register.link"
+      >
+        Complete Registration
+      </Link>
+    );
+  }
+
+  if (!role) return null;
+
+  const label = roleLabel(role);
+  const isHelper = isHelperRole(role);
+  const isAdmin = isAdminRole(role);
+
+  return (
+    <span
+      className={`text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
+        isAdmin
+          ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+          : isHelper
+            ? "bg-teal/20 text-teal-light border border-teal/30"
+            : "bg-white/10 text-white/70 border border-white/20"
+      } ${className}`}
+      data-ocid="header.role.badge"
+    >
+      {isHelper ? `${label} 🟢` : label}
+    </span>
+  );
+}
 
 export default function Header() {
   const { identity, login, clear, isLoggingIn } = useInternetIdentity();
@@ -23,6 +66,7 @@ export default function Header() {
   const { data: isAdmin } = useIsAdmin();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { role, isLoading: roleLoading } = useRole();
 
   function handleLogin() {
     login();
@@ -31,6 +75,31 @@ export default function Header() {
   function handleLogout() {
     clear();
     navigate({ to: "/" });
+  }
+
+  /**
+   * Smart routing for the "Be a Helper" / helper CTA.
+   * - Not logged in → /register
+   * - Logged in, no role yet → /register
+   * - Logged in, Helper or Admin → /helper
+   * - Logged in, User or Clinic → /register (already registered, will see info)
+   */
+  function handleHelperClick(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!isAuthenticated || roleLoading) {
+      navigate({ to: "/register" });
+      return;
+    }
+    if (role === null || role === undefined) {
+      navigate({ to: "/register" });
+      return;
+    }
+    if (isHelperRole(role) || isAdminRole(role)) {
+      navigate({ to: "/helper" });
+    } else {
+      // User or Clinic — send to register so they can see options
+      navigate({ to: "/register" });
+    }
   }
 
   return (
@@ -64,6 +133,16 @@ export default function Header() {
             >
               Find Care
             </Link>
+            <a
+              href="/helper"
+              className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              style={{ color: "oklch(0.80 0.12 196)" }}
+              onClick={handleHelperClick}
+              data-ocid="header.helper.link"
+            >
+              <Users className="h-4 w-4" aria-hidden="true" />
+              Be a Helper
+            </a>
             <Link
               to="/mission"
               className="text-on-dark hover:text-white transition-colors text-sm font-medium"
@@ -115,6 +194,8 @@ export default function Header() {
               <Phone className="h-3.5 w-3.5" aria-hidden="true" />
               833-234-6343
             </a>
+
+            {isAuthenticated && <RoleBadge />}
 
             {isAuthenticated ? (
               <Button
@@ -168,6 +249,19 @@ export default function Header() {
             >
               Find Care
             </Link>
+            <a
+              href="/helper"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors text-sm font-semibold"
+              style={{ color: "oklch(0.80 0.12 196)" }}
+              onClick={(e) => {
+                handleHelperClick(e);
+                setMobileOpen(false);
+              }}
+              data-ocid="header.mobile_helper.link"
+            >
+              <Users className="h-4 w-4" aria-hidden="true" />
+              Be a Helper
+            </a>
             <Link
               to="/mission"
               className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-on-dark hover:bg-white/10 hover:text-white transition-colors text-sm font-medium"
@@ -216,6 +310,11 @@ export default function Header() {
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 Admin
               </Link>
+            )}
+            {isAuthenticated && (
+              <div className="px-3 py-1">
+                <RoleBadge className="text-xs" />
+              </div>
             )}
             <a
               href="tel:8332346343"

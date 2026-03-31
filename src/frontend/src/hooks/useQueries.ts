@@ -1,4 +1,4 @@
-import type { ProviderInput } from "@/backend";
+import type { AuditLogEntry, ProviderInput } from "@/backend.d";
 import {
   type ProviderWithCoords,
   SAMPLE_PROVIDERS,
@@ -295,5 +295,255 @@ export function useContactMessages() {
       }
     },
     enabled: !isFetching,
+  });
+}
+
+// ── Community Helper hooks ──────────────────────────────────────────────────
+
+export function useHelperStatus() {
+  const { actor, isFetching } = useActor();
+  return useQuery<import("@/backend.d").Helper | null>({
+    queryKey: ["helperStatus"],
+    queryFn: async () => {
+      if (!actor) return null;
+      try {
+        const result = await (actor as any).getHelperStatus();
+        // Motoko returns opt Helper as [] | [Helper]
+        if (Array.isArray(result)) return result[0] ?? null;
+        return result ?? null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !isFetching,
+    refetchInterval: 30_000,
+  });
+}
+
+export function useClaimArea() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (zip: string) => {
+      if (!actor) throw new Error("Not connected to backend");
+      return (actor as any).claimArea(zip);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["helperStatus"] });
+      queryClient.invalidateQueries({ queryKey: ["activeHelperZips"] });
+    },
+  });
+}
+
+export function useCheckOutArea() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Not connected to backend");
+      return (actor as any).checkOutArea();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["helperStatus"] });
+      queryClient.invalidateQueries({ queryKey: ["activeHelperZips"] });
+    },
+  });
+}
+
+export function useLiveHelpers(zip: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery<bigint>({
+    queryKey: ["liveHelpers", zip],
+    queryFn: async () => {
+      if (!actor) return BigInt(0);
+      try {
+        return await (actor as any).getLiveHelpers(zip);
+      } catch {
+        return BigInt(0);
+      }
+    },
+    enabled: !!zip && !isFetching,
+  });
+}
+
+export function useHighRiskAreas() {
+  const { actor, isFetching } = useActor();
+  return useQuery<string[]>({
+    queryKey: ["highRiskAreas"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await (actor as any).getHighRiskAreas();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !isFetching,
+  });
+}
+
+export function useActiveHelperZips() {
+  const { actor, isFetching } = useActor();
+  return useQuery<string[]>({
+    queryKey: ["activeHelperZips"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await (actor as any).getActiveHelperZips();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !isFetching,
+    refetchInterval: 30_000,
+  });
+}
+
+// ── Twilio SMS hooks ────────────────────────────────────────────────────────
+
+export function useTwilioConfigured() {
+  const { actor, isFetching } = useActor();
+  return useQuery<boolean>({
+    queryKey: ["twilioConfigured"],
+    queryFn: async () => {
+      if (!actor) return false;
+      try {
+        return await (actor as any).getTwilioConfigured();
+      } catch {
+        return false;
+      }
+    },
+    enabled: !isFetching,
+  });
+}
+
+export function useUpdateTwilioConfig() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      sid,
+      authToken,
+      fromNumber,
+    }: {
+      sid: string;
+      authToken: string;
+      fromNumber: string;
+    }) => {
+      if (!actor) throw new Error("Not connected to backend");
+      return (actor as any).updateTwilioConfig(sid, authToken, fromNumber);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["twilioConfigured"] });
+    },
+  });
+}
+
+export function useSendVerificationSMS() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      targetPhone,
+      callerZip,
+    }: {
+      targetPhone: string;
+      callerZip: string;
+    }): Promise<string> => {
+      if (!actor) throw new Error("Not connected to backend");
+      return (actor as any).sendVerificationSMS(targetPhone, callerZip);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["smsAuditLog"] });
+    },
+  });
+}
+
+export function useSmsAuditLog() {
+  const { actor, isFetching } = useActor();
+  return useQuery<AuditLogEntry[]>({
+    queryKey: ["smsAuditLog"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await (actor as any).getSmsAuditLog();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !isFetching,
+  });
+}
+
+// ── RBAC Registry hooks ────────────────────────────────────────────────────
+
+export function useAllRegisteredUsers() {
+  const { actor, isFetching } = useActor();
+  return useQuery<import("@/backend.d").RegistryEntry[]>({
+    queryKey: ["allRegisteredUsers"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await (actor as any).getAllRegisteredUsers();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !isFetching,
+  });
+}
+
+export function useClinicStatus(providerId: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery<import("@/backend.d").ClinicStatus | null>({
+    queryKey: ["clinicStatus", providerId],
+    queryFn: async () => {
+      if (!actor || !providerId) return null;
+      try {
+        const result = await (actor as any).getClinicStatus(providerId);
+        if (Array.isArray(result)) return result[0] ?? null;
+        return result ?? null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!providerId && !isFetching,
+  });
+}
+
+export function useUpdateClinicStatus() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      naloxone,
+      acceptingPatients,
+    }: {
+      naloxone: import("@/backend.d").NaloxoneStock;
+      acceptingPatients: boolean;
+    }) => {
+      if (!actor) throw new Error("Not connected to backend");
+      return (actor as any).updateClinicStatus(naloxone, acceptingPatients);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clinicStatus"] });
+    },
+  });
+}
+
+export function useAllZipImpactData() {
+  const { actor, isFetching } = useActor();
+  return useQuery<import("@/backend.d").ImpactData[]>({
+    queryKey: ["allZipImpactData"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await (actor as any).getAllZipImpactData();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !isFetching,
+    refetchInterval: 30_000,
   });
 }

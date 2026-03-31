@@ -54,3 +54,25 @@ declare module "react-leaflet" {
 }
 
 declare module "leaflet/dist/leaflet.css" {}
+
+declare module "qrcode.react" {
+  import type { SVGProps } from "react";
+  interface QRCodeSVGProps extends SVGProps<SVGSVGElement> {
+    value: string;
+    size?: number;
+    level?: "L" | "M" | "Q" | "H";
+    includeMargin?: boolean;
+    bgColor?: string;
+    fgColor?: string;
+    imageSettings?: {
+      src: string;
+      height: number;
+      width: number;
+      excavate?: boolean;
+      x?: number;
+      y?: number;
+    };
+  }
+  export function QRCodeSVG(props: QRCodeSVGProps): JSX.Element;
+  export function QRCodeCanvas(props: QRCodeSVGProps): JSX.Element;
+}

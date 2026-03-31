@@ -80,9 +80,15 @@ export default {
           light: "oklch(0.55 0.07 196)",
           dark: "oklch(0.36 0.065 196)",
         },
-        live: "oklch(0.76 0.168 152)",
+        /* Live green — #27AE60 → oklch(0.62 0.17 155) */
+        live: "oklch(var(--live))",
+        /* CRITICAL: emergency MUST remain red — life-safety feature */
         emergency: "oklch(0.52 0.19 27)",
         "on-dark": "oklch(0.87 0.022 216)",
+        /* Trust blue — #2D9CDB */
+        "trust-blue": "oklch(0.62 0.12 218)",
+        /* Amber — #F2994A — for naloxone stock alerts */
+        "amber-data": "oklch(var(--amber))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -91,8 +97,9 @@ export default {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
-        card: "0 4px 24px rgba(11,31,46,0.12)",
-        glow: "0 0 20px rgba(11,111,121,0.35)",
+        card: "0 4px 24px rgba(0,0,0,0.4)",
+        glow: "0 0 20px rgba(45,156,219,0.25)",
+        "glow-green": "0 0 20px rgba(39,174,96,0.25)",
       },
       keyframes: {
         "accordion-down": {
