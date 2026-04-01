@@ -4,6 +4,7 @@ import { useIsAdmin } from "@/hooks/useQueries";
 import { isAdminRole, isHelperRole, roleLabel, useRole } from "@/hooks/useRole";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  BookOpen,
   Heart,
   Info,
   LayoutDashboard,
@@ -14,6 +15,7 @@ import {
   Phone,
   ShieldCheck,
   Target,
+  User,
   Users,
   X,
 } from "lucide-react";
@@ -77,13 +79,6 @@ export default function Header() {
     navigate({ to: "/" });
   }
 
-  /**
-   * Smart routing for the "Be a Helper" / helper CTA.
-   * - Not logged in → /register
-   * - Logged in, no role yet → /register
-   * - Logged in, Helper or Admin → /helper
-   * - Logged in, User or Clinic → /register (already registered, will see info)
-   */
   function handleHelperClick(e: React.MouseEvent) {
     e.preventDefault();
     if (!isAuthenticated || roleLoading) {
@@ -97,7 +92,6 @@ export default function Header() {
     if (isHelperRole(role) || isAdminRole(role)) {
       navigate({ to: "/helper" });
     } else {
-      // User or Clinic — send to register so they can see options
       navigate({ to: "/register" });
     }
   }
@@ -144,6 +138,20 @@ export default function Header() {
               Be a Helper
             </a>
             <Link
+              to="/founder"
+              className="text-on-dark hover:text-white transition-colors text-sm font-medium"
+              data-ocid="header.founder.link"
+            >
+              Our Story
+            </Link>
+            <Link
+              to="/blog"
+              className="text-on-dark hover:text-white transition-colors text-sm font-medium"
+              data-ocid="header.blog.link"
+            >
+              Blog
+            </Link>
+            <Link
               to="/mission"
               className="text-on-dark hover:text-white transition-colors text-sm font-medium"
               data-ocid="header.mission.link"
@@ -156,13 +164,6 @@ export default function Header() {
               data-ocid="header.about.link"
             >
               About
-            </Link>
-            <Link
-              to="/contact"
-              className="text-on-dark hover:text-white transition-colors text-sm font-medium"
-              data-ocid="header.contact.link"
-            >
-              Contact
             </Link>
             {isAuthenticated && (
               <Link
@@ -262,6 +263,24 @@ export default function Header() {
               <Users className="h-4 w-4" aria-hidden="true" />
               Be a Helper
             </a>
+            <Link
+              to="/founder"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-on-dark hover:bg-white/10 hover:text-white transition-colors text-sm font-medium"
+              onClick={() => setMobileOpen(false)}
+              data-ocid="header.mobile_founder.link"
+            >
+              <User className="h-4 w-4" aria-hidden="true" />
+              Our Story
+            </Link>
+            <Link
+              to="/blog"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-on-dark hover:bg-white/10 hover:text-white transition-colors text-sm font-medium"
+              onClick={() => setMobileOpen(false)}
+              data-ocid="header.mobile_blog.link"
+            >
+              <BookOpen className="h-4 w-4" aria-hidden="true" />
+              Blog
+            </Link>
             <Link
               to="/mission"
               className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-on-dark hover:bg-white/10 hover:text-white transition-colors text-sm font-medium"

@@ -93,13 +93,24 @@ export interface ClinicStatus {
     updatedAt: bigint;
 }
 
-
 export interface ImpactData {
     zip: string;
     savingsPot: number;
     livesProjected: number;
     helperCount: bigint;
     searchIntents: bigint;
+}
+
+// Blog
+export interface BlogPost {
+    id: string;
+    title: string;
+    slug: string;
+    content: string;
+    excerpt: string;
+    publishedAt: bigint;
+    isPublished: boolean;
+    author: string;
 }
 
 export interface backendInterface {
@@ -150,4 +161,12 @@ export interface backendInterface {
     // Impact Shadow
     getImpactData(zip: string): Promise<ImpactData>;
     getAllZipImpactData(): Promise<Array<ImpactData>>;
+    // Blog
+    createBlogPost(title: string, slug: string, content: string, excerpt: string, author: string): Promise<string>;
+    updateBlogPost(id: string, title: string, content: string, excerpt: string): Promise<void>;
+    publishBlogPost(id: string, published: boolean): Promise<void>;
+    deleteBlogPost(id: string): Promise<void>;
+    getBlogPost(slug: string): Promise<BlogPost | null>;
+    getPublishedBlogPosts(): Promise<Array<BlogPost>>;
+    getAllBlogPosts(): Promise<Array<BlogPost>>;
 }

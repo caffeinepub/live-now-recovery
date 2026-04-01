@@ -5,8 +5,11 @@ import SentinelChat from "@/components/SentinelChat";
 import { Toaster } from "@/components/ui/sonner";
 import AboutPage from "@/pages/AboutPage";
 import AdminPage from "@/pages/AdminPage";
+import BlogPage from "@/pages/BlogPage";
+import BlogPostPage from "@/pages/BlogPostPage";
 import ContactPage from "@/pages/ContactPage";
 import DashboardPage from "@/pages/DashboardPage";
+import FounderPage from "@/pages/FounderPage";
 import HelperPage from "@/pages/HelperPage";
 import HomePage from "@/pages/HomePage";
 import LocationPage, { LocationPageDirect } from "@/pages/LocationPage";
@@ -97,6 +100,24 @@ const registerRoute = createRoute({
   component: RegisterPage,
 });
 
+const founderRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/founder",
+  component: FounderPage,
+});
+
+const blogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/blog",
+  component: BlogPage,
+});
+
+const blogPostRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/blog/$slug",
+  component: BlogPostPage,
+});
+
 const locationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/location/$town",
@@ -145,6 +166,9 @@ const routeTree = rootRoute.addChildren([
   aboutRoute,
   contactRoute,
   registerRoute,
+  founderRoute,
+  blogRoute,
+  blogPostRoute,
   locationRoute,
   clevelandRoute,
   lakewoodRoute,

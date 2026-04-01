@@ -38,7 +38,7 @@ export default function MarkCubanCard() {
           }}
         >
           <p className="text-xs text-green-300 mb-1 uppercase tracking-wide font-semibold">
-            Mark Cuban Cost Plus
+            Cost Plus Pricing
           </p>
           <p className="text-2xl font-bold text-green-300">$45.37</p>
           <p className="text-xs text-on-dark">/month</p>

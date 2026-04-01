@@ -22,8 +22,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm leading-relaxed">
-              Built by a peer 8-years clean. Your data is never stored. You are
-              not alone.
+              Built by a peer 10 years in the program. Your data is never
+              stored. You are not alone.
             </p>
             <p className="text-xs">
               &copy; {year} Live Now Recovery LLC | Ohio Region 13
@@ -55,7 +55,7 @@ export default function Footer() {
                   data-ocid="footer.costplus.link"
                 >
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                  Mark Cuban Cost Plus Drugs
+                  Cost Plus Drug Pricing
                 </a>
               </li>
               <li>
@@ -96,6 +96,17 @@ export default function Footer() {
         <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <p>
             This platform does not store protected health information (PHI).
+          </p>
+          <p className="text-white/40">
+            Drug pricing transparency powered by{" "}
+            <a
+              href="https://costplusdrugs.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white/70 transition-colors underline underline-offset-2"
+            >
+              Cost Plus Drugs
+            </a>
           </p>
           <a
             href={caffeineUrl}

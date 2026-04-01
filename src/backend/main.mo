@@ -104,6 +104,18 @@ actor {
     role : Text;
   };
 
+  // Blog types
+  public type BlogPost = {
+    id : Text;
+    title : Text;
+    slug : Text;
+    content : Text;
+    excerpt : Text;
+    publishedAt : Int;
+    isPublished : Bool;
+    author : Text;
+  };
+
   module Provider {
     public func compare(provider1 : Provider, provider2 : Provider) : Order.Order {
       Text.compare(provider1.id, provider2.id);
@@ -137,6 +149,10 @@ actor {
 
   // RBAC registry
   let registry = Map.empty<Principal, RoleProfile>();
+
+  // Blog posts
+  let blogPosts = Map.empty<Text, BlogPost>();
+  var blogPostCounter : Nat = 0;
 
   // ─────────────────────────────────────────────
   // CONSTANTS
@@ -436,7 +452,7 @@ actor {
       case (null) { Runtime.trap("Invalid US phone number. Use format: 216-555-1212") };
       case (?n) { n };
     };
-    let msgBody = "LIVE NOW: Your device is now synced to the Recovery Bridge. 8-years clean and building. We have your back.";
+    let msgBody = "LIVE NOW: Your device is now synced to the Recovery Bridge. 10-years in the program and building. We have your back.";
     let url = "https://api.twilio.com/2010-04-01/Accounts/" # config.sid # "/Messages.json";
     let authString = base64Encode(config.sid # ":" # config.authToken);
     let bodyStr = "From=" # urlEncode(config.fromNumber) # "&To=" # urlEncode(e164) # "&Body=" # urlEncode(msgBody);
@@ -807,6 +823,72 @@ actor {
       let helperCount = countLiveHelpersForZip(zip);
       { zip; savingsPot; livesProjected; helperCount; searchIntents = intents };
     });
+  };
+
+  // ─────────────────────────────────────────────
+  // BLOG SYSTEM
+  // ─────────────────────────────────────────────
+
+  public shared ({ caller }) func createBlogPost(title : Text, slug : Text, content : Text, excerpt : Text, author : Text) : async Text {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can create blog posts");
+    };
+    if (title.isEmpty() or slug.isEmpty() or content.isEmpty()) {
+      Runtime.trap("Title, slug, and content are required");
+    };
+    blogPostCounter += 1;
+    let id = "blog_" # blogPostCounter.toText();
+    blogPosts.add(id, { id; title; slug; content; excerpt; publishedAt = 0; isPublished = false; author });
+    id;
+  };
+
+  public shared ({ caller }) func updateBlogPost(id : Text, title : Text, content : Text, excerpt : Text) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can update blog posts");
+    };
+    let post = switch (blogPosts.get(id)) {
+      case (null) { Runtime.trap("Blog post not found") };
+      case (?p) { p };
+    };
+    blogPosts.add(id, { post with title; content; excerpt });
+  };
+
+  public shared ({ caller }) func publishBlogPost(id : Text, published : Bool) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can publish blog posts");
+    };
+    let post = switch (blogPosts.get(id)) {
+      case (null) { Runtime.trap("Blog post not found") };
+      case (?p) { p };
+    };
+    let publishedAt = if (published and post.publishedAt == 0) { Time.now() } else { post.publishedAt };
+    blogPosts.add(id, { post with isPublished = published; publishedAt });
+  };
+
+  public shared ({ caller }) func deleteBlogPost(id : Text) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can delete blog posts");
+    };
+    ignore blogPosts.remove(id);
+  };
+
+  public query func getBlogPost(slug : Text) : async ?BlogPost {
+    for (post in blogPosts.values()) {
+      if (post.slug == slug and post.isPublished) { return ?post; };
+    };
+    null;
+  };
+
+  public query func getPublishedBlogPosts() : async [BlogPost] {
+    let published = blogPosts.values().toArray().filter(func(p : BlogPost) : Bool { p.isPublished });
+    published.sort(func(a : BlogPost, b : BlogPost) : Order.Order { Int.compare(b.publishedAt, a.publishedAt) });
+  };
+
+  public query ({ caller }) func getAllBlogPosts() : async [BlogPost] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view all blog posts");
+    };
+    blogPosts.values().toArray();
   };
 
 };
